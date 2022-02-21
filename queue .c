@@ -8,7 +8,7 @@
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
- *   cppcheck-suppress nullPointer
+ *   cppcheck-suppress nullPointer?????
  */
 
 /*
@@ -17,11 +17,27 @@
  */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *q = (struct list_head *) malloc(sizeof(struct list_head));
+    if (q != NULL) {
+        INIT_LIST_HEAD(q);
+    }
+    return q;  // If could not allocate space, q is automatically NULL
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l) {}
+void q_free(struct list_head *l)
+{
+    // Since q_free is only called when l != NULL (at least in q_new), the
+    // following code might not be necessary.
+    if (l == NULL)
+        return;
+    struct list_head *node = l->next;
+    while (node != l) {
+        node = node->next;
+        q_release_element(list_entry(node->prev, element_t, list));
+    }
+    free(l);
+}
 
 /*
  * Attempt to insert element at head of queue.
@@ -32,6 +48,18 @@ void q_free(struct list_head *l) {}
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (head == NULL)
+        return false;
+    element_t *e = (element_t *) malloc(sizeof(element_t));
+    if (e == NULL)
+        return false;
+    e->value = strdup(s);  // strdup already does the malloc, WHICH MIGHT FAIL
+    if (e->value == NULL)  // if string memory alloc failed
+    {
+        free(e);
+        return false;
+    }
+    list_add(&e->list, head);
     return true;
 }
 
@@ -44,6 +72,18 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (head == NULL)
+        return false;
+    element_t *e = (element_t *) malloc(sizeof(element_t));
+    if (e == NULL)
+        return false;
+    e->value = strdup(s);  // strdup already does the malloc, WHICH MIGHT FAIL
+    if (e->value == NULL)  // if string memory alloc failed
+    {
+        free(e);
+        return false;
+    }
+    list_add_tail(&e->list, head);
     return true;
 }
 
@@ -63,7 +103,18 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (head == NULL || list_empty(head))
+        return NULL;
+    element_t *e = list_first_entry(head, element_t, list);
+    if (sp != NULL) {
+        // incorrect: strndup does a new malloc, storing the value to a new
+        // address other than where sp is originally pointing to sp =
+        // strndup(e->value, bufsize-1);
+        strncpy(sp, e->value, bufsize - 1);
+        sp[bufsize - 1] = '\0';
+    }
+    list_del(&e->list);
+    return e;
 }
 
 /*
@@ -72,7 +123,15 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
  */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (head == NULL || list_empty(head))
+        return NULL;
+    element_t *e = list_last_entry(head, element_t, list);
+    if (sp != NULL) {
+        strncpy(sp, e->value, bufsize - 1);
+        sp[bufsize - 1] = '\0';
+    }
+    list_del(&e->list);
+    return e;
 }
 
 /*
@@ -102,9 +161,24 @@ int q_size(struct list_head *head)
  * Return true if successful.
  * Return false if list is NULL or empty.
  */
+// https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
 bool q_delete_mid(struct list_head *head)
 {
-    // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
+    if (head == NULL || list_empty(head))
+        return false;
+
+    struct list_head *l = head->next;
+    struct list_head *r = head->prev;
+
+    while (l != r && l->next != r) {
+        l = l->next;
+        r = r->prev;
+    }
+
+    r = l;
+    list_del(r);
+    q_release_element(list_entry(l, element_t, list));
+
     return true;
 }
 
