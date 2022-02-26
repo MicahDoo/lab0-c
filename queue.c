@@ -150,7 +150,13 @@ void q_release_element(element_t *e)
  */
 int q_size(struct list_head *head)
 {
-    return -1;
+    int i = 0;
+    struct list_head *it = head->next;
+    while (it != head) {
+        it = it->next;
+        ++i;
+    }
+    return i;
 }
 
 /*
@@ -188,21 +194,38 @@ bool q_delete_mid(struct list_head *head)
  * Return true if successful.
  * Return false if list is NULL.
  *
- * Note: this function always be called after sorting, in other words,
+ * Note: this function will always be called after sorting, in other words,
  * list is guaranteed to be sorted in ascending order.
  */
 bool q_delete_dup(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    // see HackMD quiz1-2 and test them
     return true;
 }
 
 /*
  * Attempt to swap every two adjacent nodes.
  */
+// https://leetcode.com/problems/swap-nodes-in-pairs/
 void q_swap(struct list_head *head)
 {
-    // https://leetcode.com/problems/swap-nodes-in-pairs/
+    if (head == NULL || list_empty(head))
+        return;
+    struct list_head *it1 = head->next;
+    struct list_head *it2 = it1->next;
+    struct list_head *tmp;
+
+    while (it1 != head && it2 != head) {
+        tmp = it2->next;
+        it1->prev->next = it2;
+        it2->next->prev = it1;
+        it1->next = it2->next;
+        it2->prev = it1->prev;
+        it2->next = it1;
+        it1->prev = it2;
+        it1 = tmp;
+        it2 = tmp->next;
+    }
 }
 
 /*
@@ -212,11 +235,60 @@ void q_swap(struct list_head *head)
  * (e.g., by calling q_insert_head, q_insert_tail, or q_remove_head).
  * It should rearrange the existing ones.
  */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    if (head == NULL || list_empty(head))
+        return;
+    struct list_head *it = head;
+    struct list_head *tmp;
+
+    do {
+        tmp = it->next;
+        it->next = it->prev;
+        it->prev = tmp;
+        it = it->prev;
+    } while (it != head);
+}
 
 /*
  * Sort elements of queue in ascending order
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (head == NULL || list_empty(head) || list_is_singular(head))
+        return;
+
+    struct list_head *l = head->next;
+    struct list_head *r = head->prev;
+
+    while (l != r && l->next != r) {
+        l = l->next;
+        r = r->prev;
+    }
+
+    l = r->prev;
+    l->next = head;
+    r->prev = head->prev;
+    head->prev->next = r;
+    head->prev = l;
+    l->next = r;
+    r->prev->next = l;
+    r->prev = l;
+
+
+    l = head->next;
+    while (l != head) {
+        printf("%s\n", list_entry(l, element_t, list)->value);
+        l = l->next;
+    }
+
+    l = head->prev;
+    while (l != head) {
+        printf("%s\n", list_entry(l, element_t, list)->value);
+        l = l->prev;
+    }
+
+    list_splice(r, head);
+}
