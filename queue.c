@@ -204,24 +204,35 @@ bool q_delete_dup(struct list_head *head)
     if (!head)
         return false;
 
-    struct list_head **tmp = &head;
-    while (*tmp != head) {
-        if (!(*tmp)->next ||
-            strcmp(list_entry((*tmp), element_t, list)->value,
-                   list_entry((*tmp)->next, element_t, list)->value))  // diff
-            tmp = &(*tmp)->next;
-        else {
-            do
-                *tmp = (*tmp)->next;
-            while (
-                (*tmp)->next &&
-                !strcmp(
-                    list_entry((*tmp), element_t, list)->value,
-                    list_entry((*tmp)->next, element_t, list)->value));  // same
-            *tmp = (*tmp)->next;
-            (*tmp)->next->prev = *tmp;
+    struct list_head **curr = &head->next;
+    struct list_head *tmp;
+    while ((*curr) != head) {
+        fflush(stdout);
+        if ((*curr)->next == head ||
+            strcmp(
+                list_entry((*curr), element_t, list)->value,
+                list_entry((*curr)->next, element_t, list)->value)) {  // diff
+            curr = &(*curr)->next;
+        } else {
+            printf("%s is a dup\n",
+                   list_entry((*curr), element_t, list)->value);
+            do {
+                tmp = *curr;
+                (*curr)->next->prev = (*curr)->prev;  // !!!IMPORTANT!!!
+                *curr = (*curr)->next;
+                q_release_element(list_entry(tmp, element_t, list));
+            } while ((*curr)->next != head &&
+                     !strcmp(list_entry((*curr), element_t, list)->value,
+                             list_entry((*curr)->next, element_t, list)
+                                 ->value));  // same
+            tmp = *curr;
+            (*curr)->next->prev = (*curr)->prev;  // !!!IMPORTANT!!!
+            *curr = (*curr)->next;
+            (*curr)->next->prev = *curr;
+            q_release_element(list_entry(tmp, element_t, list));
         }
     }
+
     return true;
 }
 
