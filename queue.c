@@ -200,6 +200,28 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // see HackMD quiz1-2 and test them
+
+    if (!head)
+        return false;
+
+    struct list_head **tmp = &head;
+    while (*tmp != head) {
+        if (!(*tmp)->next ||
+            strcmp(list_entry((*tmp), element_t, list)->value,
+                   list_entry((*tmp)->next, element_t, list)->value))  // diff
+            tmp = &(*tmp)->next;
+        else {
+            do
+                *tmp = (*tmp)->next;
+            while (
+                (*tmp)->next &&
+                !strcmp(
+                    list_entry((*tmp), element_t, list)->value,
+                    list_entry((*tmp)->next, element_t, list)->value));  // same
+            *tmp = (*tmp)->next;
+            (*tmp)->next->prev = *tmp;
+        }
+    }
     return true;
 }
 
@@ -257,38 +279,38 @@ void q_reverse(struct list_head *head)
  */
 void q_sort(struct list_head *head)
 {
-    if (head == NULL || list_empty(head) || list_is_singular(head))
-        return;
+    // if (head == NULL || list_empty(head) || list_is_singular(head))
+    //     return;
 
-    struct list_head *l = head->next;
-    struct list_head *r = head->prev;
+    // struct list_head *l = head->next;
+    // struct list_head *r = head->prev;
 
-    while (l != r && l->next != r) {
-        l = l->next;
-        r = r->prev;
-    }
+    // while (l != r && l->next != r) {
+    //     l = l->next;
+    //     r = r->prev;
+    // }
 
-    l = r->prev;
-    l->next = head;
-    r->prev = head->prev;
-    head->prev->next = r;
-    head->prev = l;
-    l->next = r;
-    r->prev->next = l;
-    r->prev = l;
+    // l = r->prev;
+    // l->next = head;
+    // r->prev = head->prev;
+    // head->prev->next = r;
+    // head->prev = l;
+    // l->next = r;
+    // r->prev->next = l;
+    // r->prev = l;
 
 
-    l = head->next;
-    while (l != head) {
-        printf("%s\n", list_entry(l, element_t, list)->value);
-        l = l->next;
-    }
+    // l = head->next;
+    // while (l != head) {
+    //     printf("%s\n", list_entry(l, element_t, list)->value);
+    //     l = l->next;
+    // }
 
-    l = head->prev;
-    while (l != head) {
-        printf("%s\n", list_entry(l, element_t, list)->value);
-        l = l->prev;
-    }
+    // l = head->prev;
+    // while (l != head) {
+    //     printf("%s\n", list_entry(l, element_t, list)->value);
+    //     l = l->prev;
+    // }
 
-    list_splice(r, head);
+    // list_splice(r, head);
 }
