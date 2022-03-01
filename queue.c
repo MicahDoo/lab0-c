@@ -106,6 +106,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
     if (!head || list_empty(head))
         return NULL;
+
     element_t *e = list_first_entry(head, element_t, list);
     if (sp) {
         // incorrect: strndup does a new malloc, storing the value to a new
@@ -114,6 +115,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
         strncpy(sp, e->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
+
     list_del(&e->list);
     return e;
 }
