@@ -18,7 +18,7 @@
 struct list_head *q_new()
 {
     struct list_head *q = (struct list_head *) malloc(sizeof(struct list_head));
-    if (q != NULL) {
+    if (q) {
         INIT_LIST_HEAD(q);
     }
     return q;  // If could not allocate space, q is automatically NULL
@@ -29,7 +29,7 @@ void q_free(struct list_head *l)
 {
     // Since q_free is only called when l != NULL (at least in q_new), the
     // following code might not be necessary.
-    if (l == NULL)
+    if (!l)
         return;
 
     struct list_head *node = l->next;
@@ -49,13 +49,13 @@ void q_free(struct list_head *l)
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    if (head == NULL)
+    if (!head)
         return false;
     element_t *e = (element_t *) malloc(sizeof(element_t));
-    if (e == NULL)
+    if (!e)
         return false;
     e->value = strdup(s);  // strdup already does the malloc, WHICH MIGHT FAIL
-    if (e->value == NULL)  // if string memory alloc failed
+    if (!e->value)         // if string memory alloc failed
     {
         free(e);
         return false;
@@ -73,13 +73,13 @@ bool q_insert_head(struct list_head *head, char *s)
  */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    if (head == NULL)
+    if (!head)
         return false;
     element_t *e = (element_t *) malloc(sizeof(element_t));
-    if (e == NULL)
+    if (!e)
         return false;
     e->value = strdup(s);  // strdup already does the malloc, WHICH MIGHT FAIL
-    if (e->value == NULL)  // if string memory alloc failed
+    if (!e->value)         // if string memory alloc failed
     {
         free(e);
         return false;
@@ -104,10 +104,10 @@ bool q_insert_tail(struct list_head *head, char *s)
  */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (head == NULL || list_empty(head))
+    if (!head || list_empty(head))
         return NULL;
     element_t *e = list_first_entry(head, element_t, list);
-    if (sp != NULL) {
+    if (sp) {
         // incorrect: strndup does a new malloc, storing the value to a new
         // address other than where sp is originally pointing to sp =
         // strndup(e->value, bufsize-1);
@@ -124,10 +124,10 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
  */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (head == NULL || list_empty(head))
+    if (!head || list_empty(head))
         return NULL;
     element_t *e = list_last_entry(head, element_t, list);
-    if (sp != NULL) {
+    if (sp) {
         strncpy(sp, e->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
@@ -172,7 +172,7 @@ int q_size(struct list_head *head)
 // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
 bool q_delete_mid(struct list_head *head)
 {
-    if (head == NULL || list_empty(head))
+    if (!head || list_empty(head))
         return false;
 
     struct list_head *l = head->next;
@@ -282,7 +282,7 @@ void q_swap(struct list_head *head)
  */
 void q_reverse(struct list_head *head)
 {
-    if (head == NULL || list_empty(head))
+    if (!head || list_empty(head))
         return;
     struct list_head *it = head;
     struct list_head *tmp;
@@ -310,9 +310,9 @@ void merge_sort(struct list_head **head)
     struct list_head *fast = (*head)->next;
     struct list_head *slow = *head;
 
-    while (fast != NULL) {
+    while (fast) {
         fast = fast->next;
-        if (fast != NULL) {
+        if (fast) {
             fast = fast->next;
             slow = slow->next;
         }
@@ -343,7 +343,7 @@ void merge_sort(struct list_head **head)
 
 void q_sort(struct list_head *head)
 {
-    if (head == NULL || list_empty(head) || list_is_singular(head))
+    if (!head || list_empty(head) || list_is_singular(head))
         return;
 
     /* Turn it into a singly linked list where the end is NULL */
@@ -355,7 +355,7 @@ void q_sort(struct list_head *head)
     /* Revert it back to a circular doubly linked list */
     struct list_head *prev = head;
     struct list_head *curr = head->next;
-    while (curr != NULL) {
+    while (curr) {
         curr->prev = prev;
         prev = curr;
         curr = curr->next;
