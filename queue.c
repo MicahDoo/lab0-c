@@ -31,6 +31,7 @@ void q_free(struct list_head *l)
     // following code might not be necessary.
     if (l == NULL)
         return;
+
     struct list_head *node = l->next;
     while (node != l) {
         node = node->next;
@@ -153,9 +154,8 @@ int q_size(struct list_head *head)
     if (!head || list_empty(head))
         return 0;
     int i = 0;
-    struct list_head *it = head->next;
-    while (it != head) {
-        it = it->next;
+    struct list_head *it;
+    list_for_each (it, head) {
         ++i;
     }
     return i;
@@ -300,4 +300,66 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head) {}
+void merge_sort(struct list_head **head)
+{
+    /* Base cases */
+    if (!*head || !(*head)->next)
+        return;
+
+    /* Split: fast will reach the end when slow reaches the middle */
+    struct list_head *fast = (*head)->next;
+    struct list_head *slow = *head;
+
+    while (fast != NULL) {
+        fast = fast->next;
+        if (fast != NULL) {
+            fast = fast->next;
+            slow = slow->next;
+        }
+    }
+
+    struct list_head *left = *head;
+    struct list_head *right = slow->next;
+    slow->next = NULL; /* End of the left list */
+    merge_sort(&left);
+    merge_sort(&right);
+
+    struct list_head dummy;
+    struct list_head *curr = &dummy;
+    while (left && right) {
+        if (strcmp(list_entry(left, element_t, list)->value,
+                   list_entry(right, element_t, list)->value) > 0) {
+            curr->next = right;
+            right = right->next;
+        } else {
+            curr->next = left;
+            left = left->next;
+        }
+        curr = curr->next;
+    }
+    curr->next = !left ? right : left;
+    *head = dummy.next;
+}
+
+void q_sort(struct list_head *head)
+{
+    if (head == NULL || list_empty(head) || list_is_singular(head))
+        return;
+
+    /* Turn it into a singly linked list where the end is NULL */
+    head->prev->next = NULL;
+
+    /* The first node should have a value */
+    merge_sort(&(head->next));
+
+    /* Revert it back to a circular doubly linked list */
+    struct list_head *prev = head;
+    struct list_head *curr = head->next;
+    while (curr != NULL) {
+        curr->prev = prev;
+        prev = curr;
+        curr = curr->next;
+    }
+    prev->next = head;
+    head->prev = prev;
+}
