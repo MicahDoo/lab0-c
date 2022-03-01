@@ -150,6 +150,8 @@ void q_release_element(element_t *e)
  */
 int q_size(struct list_head *head)
 {
+    if (!head || list_empty(head))
+        return 0;
     int i = 0;
     struct list_head *it = head->next;
     while (it != head) {
@@ -207,7 +209,6 @@ bool q_delete_dup(struct list_head *head)
     struct list_head **curr = &head->next;
     struct list_head *tmp;
     while ((*curr) != head) {
-        fflush(stdout);
         if ((*curr)->next == head ||
             strcmp(
                 list_entry((*curr), element_t, list)->value,
@@ -242,22 +243,33 @@ bool q_delete_dup(struct list_head *head)
 // https://leetcode.com/problems/swap-nodes-in-pairs/
 void q_swap(struct list_head *head)
 {
-    if (head == NULL || list_empty(head))
+    if (!head || list_empty(head))
         return;
-    struct list_head *it1 = head->next;
-    struct list_head *it2 = it1->next;
-    struct list_head *tmp;
 
-    while (it1 != head && it2 != head) {
-        tmp = it2->next;
-        it1->prev->next = it2;
-        it2->next->prev = it1;
-        it1->next = it2->next;
-        it2->prev = it1->prev;
-        it2->next = it1;
-        it1->prev = it2;
-        it1 = tmp;
-        it2 = tmp->next;
+    struct list_head *left = head->next;
+    struct list_head *right = left->next;
+
+    while (left != head && right != head) {
+        /* Don't modify the "outwards" pointers first, e.g. left->prev or
+         * right->next \
+         * because they are the only variable giving us reference to the left
+         * neightbor \ and the right neighbor. */
+
+        /* Make the neighbors point to the correct new nodes */
+        right->next->prev = left;
+        left->prev->next = right;
+
+        /* Make the two nodes point to the new neighbors */
+        right->prev = left->prev;
+        left->next = right->next;
+
+        /* Change outward pointers */
+        right->next = left;
+        left->prev = right;
+
+        /* Next two pairs */
+        left = left->next;
+        right = left->next;
     }
 }
 
@@ -279,7 +291,7 @@ void q_reverse(struct list_head *head)
         tmp = it->next;
         it->next = it->prev;
         it->prev = tmp;
-        it = it->prev;
+        it = it->prev; /* it = it->next works too */
     } while (it != head);
 }
 
@@ -288,40 +300,4 @@ void q_reverse(struct list_head *head)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
-void q_sort(struct list_head *head)
-{
-    // if (head == NULL || list_empty(head) || list_is_singular(head))
-    //     return;
-
-    // struct list_head *l = head->next;
-    // struct list_head *r = head->prev;
-
-    // while (l != r && l->next != r) {
-    //     l = l->next;
-    //     r = r->prev;
-    // }
-
-    // l = r->prev;
-    // l->next = head;
-    // r->prev = head->prev;
-    // head->prev->next = r;
-    // head->prev = l;
-    // l->next = r;
-    // r->prev->next = l;
-    // r->prev = l;
-
-
-    // l = head->next;
-    // while (l != head) {
-    //     printf("%s\n", list_entry(l, element_t, list)->value);
-    //     l = l->next;
-    // }
-
-    // l = head->prev;
-    // while (l != head) {
-    //     printf("%s\n", list_entry(l, element_t, list)->value);
-    //     l = l->prev;
-    // }
-
-    // list_splice(r, head);
-}
+void q_sort(struct list_head *head) {}
