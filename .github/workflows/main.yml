@@ -19,7 +19,7 @@ jobs:
             make check || (cat scripts/weeping.raw ; exit 1)
             cat scripts/pikachu.raw
     - name: ./qtest
-      run:. ./qtest -f traces/trace-17-complexity.cmd
+      run:  ./qtest -f traces/trace-17-complexity.cmd
     - name: make test
       run: |
             make test || (cat scripts/weeping.raw ; exit 1)
